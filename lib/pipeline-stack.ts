@@ -39,6 +39,8 @@ export class PipelineStack extends Stack {
         'pip install tox',
         // Install cdk project dependendencies
         'npm ci',
+        // Set up Integration Test layer with npm dependencies
+        'cd lib/integration-test/layers/nodejs && npm ci && cd -',
         // run Unit tests for python lambda functions
         'npm run test:lambda',
         // Synthesize CDK app
