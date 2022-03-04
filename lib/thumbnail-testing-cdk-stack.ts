@@ -24,16 +24,13 @@ import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
  *   sinputBucket
  * );
  * ```
- *
  */
 export class ThumbnailTestCdkStack extends Stack {
   testArtifactBucketName = 'thumbnail-test-artifacts';
   testArtifactBucketArn = `arn:aws:s3:::${this.testArtifactBucketName}`;
   testerLambdaName: string;
 
-  /**
-   * @constructor
-   */
+  /** @constructor */
   constructor(
     scope: Construct,
     id: string,

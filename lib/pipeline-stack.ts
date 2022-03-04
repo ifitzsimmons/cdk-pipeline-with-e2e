@@ -22,13 +22,7 @@ import { addStageToPipeline } from './add-stage-to-pipeline';
  * ```
  */
 export class PipelineStack extends Stack {
-  /**
-   * Creates the pipeline with GitHub Source and a custom Synth step.
-   * Also provisions custom stages using the list of Stages defined in
-   * the pipeline constants file.
-   *
-   * @constructor
-   */
+  /** @constructor */
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -41,10 +35,13 @@ export class PipelineStack extends Stack {
     const synthStep = new ShellStep('Synth', {
       input: pipelineTrigger,
       commands: [
+        // Install tox (required for running our python unit tests)
         'pip install tox',
+        // Install cdk project dependendencies
         'npm ci',
-        'cd lib/integration-test/layers/nodejs && npm ci && cd -',
+        // run Unit tests for python lambda functions
         'npm run test:lambda',
+        // Synthesize CDK app
         'npm run build',
         'npx cdk synth',
       ],
