@@ -1,5 +1,5 @@
 import { AppStage } from './app-stage';
-import { LambdaInvokeStep } from './stage-action/lambda-invoke-action';
+import { LambdaInvokeStep } from './stage-action/lambda-invoke-step';
 import * as Lambda from 'aws-cdk-lib/aws-lambda';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Duration } from 'aws-cdk-lib';
