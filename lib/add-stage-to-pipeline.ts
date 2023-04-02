@@ -1,13 +1,12 @@
 import { AppStage } from './app-stage';
 import { LambdaInvokeStep } from './stage-action/lambda-invoke-step';
 import * as Lambda from 'aws-cdk-lib/aws-lambda';
-import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { Duration } from 'aws-cdk-lib';
 import { CodePipeline } from 'aws-cdk-lib/pipelines';
 import { PipelineStack } from './pipeline-stack';
 import { StageType } from './constants/stages';
 import { AwsRegion } from './types';
 import { Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { TestImageResizer } from './integration-test/test-image-resizer';
 
 /**
  * Create layer for lambda function that exposes winston logger
@@ -34,28 +33,16 @@ const createIntegrationTestLambda = (
   stageName: StageType,
   testLambdaName: string
 ): Lambda.Function => {
-  const testerLambda = new Lambda.Function(app, `${stageName}TestImageProcessor`, {
-    functionName: `IntegrationTest-${stageName}-${appRegion}`,
-    code: Lambda.Code.fromAsset('lib/integration-test'),
-    handler: 'index.handler',
-    runtime: Lambda.Runtime.NODEJS_12_X,
-    timeout: Duration.minutes(2),
-    environment: {
-      CREATE_THUMBNAIL_DRIVER_NAME: testLambdaName,
-      THUMBNAIL_GENERATOR_REGION: appRegion,
-    },
-  });
-  testerLambda.addToRolePolicy(
-    new PolicyStatement({
-      sid: 'InvokeServiceTester',
-      effect: Effect.ALLOW,
-      actions: ['lambda:InvokeFunction'],
-      resources: ['*'],
-    })
+  const testerLambda = new TestImageResizer(
+    app,
+    `test-image-resizer-${stageName}`,
+    testLambdaName,
+    stageName,
+    appRegion
   );
-  testerLambda.addLayers(createLoggerLayer(app, appRegion));
+  testerLambda.lambdaFunction.addLayers(createLoggerLayer(app, appRegion));
 
-  return testerLambda;
+  return testerLambda.lambdaFunction;
 };
 
 /**
