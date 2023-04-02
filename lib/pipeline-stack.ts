@@ -45,7 +45,7 @@ export class PipelineStack extends Stack {
         'npm run test:lambda',
         // Synthesize CDK app
         'npm run build',
-        'npx cdk synth',
+        'npm run cdk synth',
       ],
     });
 
