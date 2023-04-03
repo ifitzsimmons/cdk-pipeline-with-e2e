@@ -44,7 +44,6 @@ export class PipelineStack extends Stack {
         // run Unit tests for python lambda functions
         'npm run test:lambda',
         // Synthesize CDK app
-        'npm run build',
         'npm run cdk synth',
       ],
     });
