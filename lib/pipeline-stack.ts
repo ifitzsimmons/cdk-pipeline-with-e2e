@@ -39,10 +39,20 @@ export class PipelineStack extends Stack {
         'pip install tox',
         // ensure pip is up-to-date
         'python3 -m pip install --upgrade pip',
+        // install lambda layer
+        // https://repost.aws/knowledge-center/lambda-python-package-compatible
+        'pip install \
+          --target src/layers/PillowLayer/python/lib/python3.8/site-packages \
+          --platform manylinux2014_x86_64 \
+          --implementation cp \
+          --only-binary=:all: \
+          --python-version 3.8 \
+          --upgrade \
+          Pillow',
         // Install cdk project dependendencies
         'npm ci',
         // Set up Integration Test layer with npm dependencies
-        'cd lib/integration-test/layers/nodejs && npm ci && cd -',
+        'cd ./lib/integration-test/layers/nodejs && npm ci && cd -',
         // run Unit tests for python lambda functions
         'npm run test:lambda',
         // Synthesize CDK app
