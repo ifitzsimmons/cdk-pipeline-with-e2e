@@ -37,6 +37,8 @@ export class PipelineStack extends Stack {
       commands: [
         // Install tox (required for running our python unit tests)
         'pip install tox',
+        // ensure pip is up-to-date
+        'python3 -m pip install --upgrade pip',
         // Install cdk project dependendencies
         'npm ci',
         // Set up Integration Test layer with npm dependencies
