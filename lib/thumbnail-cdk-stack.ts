@@ -45,9 +45,9 @@ export class ThumbnailCdkStack extends Stack {
       bucketName: `${BUCKET_PREFIX}-thumbnail-images-destination-${this.region}`,
     });
 
-    const pythonLayers = new lambda.LayerVersion(this, 'ImageResizeLayer', {
+    const pythonLayers = new lambda.LayerVersion(this, 'PillowLayer', {
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_8],
-      code: lambda.Code.fromAsset('src/layers/myLayer'),
+      code: lambda.Code.fromAsset('src/layers/PillowLayer'),
     });
 
     this.createThumbnailGeneratorLambda(pythonLayers);
