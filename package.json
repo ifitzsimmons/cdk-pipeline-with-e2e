@@ -7,8 +7,9 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint .",
-    "postinstall": "npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
     "watch": "tsc -w",
+    "postinstall": "if test \"$CODEBUILD_CI\" != true ; then npm run install-husky ; fi",
+    "install-husky": "npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
     "test": "jest",
     "test:lambda": "python3 -m tox -c src/tox.ini",
     "cdk": "cdk"
