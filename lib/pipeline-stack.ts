@@ -35,20 +35,10 @@ export class PipelineStack extends Stack {
     const synthStep = new ShellStep('Synth', {
       input: pipelineTrigger,
       commands: [
-        // Install tox (required for running our python unit tests)
-        'pip install tox',
         // ensure pip is up-to-date
         'python3 -m pip install --upgrade pip',
-        // install lambda layer
-        // https://repost.aws/knowledge-center/lambda-python-package-compatible
-        'pip install \
-          --target src/layers/PillowLayer/python/lib/python3.8/site-packages \
-          --platform manylinux2014_x86_64 \
-          --implementation cp \
-          --only-binary=:all: \
-          --python-version 3.8 \
-          --upgrade \
-          Pillow',
+        // Install tox (required for running our python unit tests)
+        'pip install tox',
         // Install cdk project dependendencies
         'npm ci',
         // Set up Integration Test layer with npm dependencies
@@ -64,6 +54,7 @@ export class PipelineStack extends Stack {
       pipelineName: 'ThumbnailServicePipeline',
       selfMutation: true,
       synth: synthStep,
+      dockerEnabledForSynth: true,
     });
 
     STAGES.forEach(({ stageName, account }) => {
