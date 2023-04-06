@@ -1,12 +1,11 @@
 import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { BlockPublicAccess, Bucket, EventType } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BUCKET_PREFIX } from './constants/pipeline';
-
+import { PythonFunction, PythonLayerVersion } from '@aws-cdk/aws-lambda-python-alpha';
 /**
  * Creates a stack with an ingestion bucket, a destination bucket
  * and a Lambda function that converts images upload to the ingestion bucket
@@ -45,38 +44,37 @@ export class ThumbnailCdkStack extends Stack {
       bucketName: `${BUCKET_PREFIX}-thumbnail-images-destination-${this.region}`,
     });
 
-    const pythonLayers = new lambda.LayerVersion(this, 'PillowLayer', {
-      compatibleRuntimes: [lambda.Runtime.PYTHON_3_8],
-      code: lambda.Code.fromAsset('src/layers/PillowLayer'),
-    });
-
-    this.createThumbnailGeneratorLambda(pythonLayers);
+    this.createThumbnailGeneratorLambda();
   }
 
   /**
    * Creates Lambda that converts images uploaded to ingestion bucket into
    * image thumbnails in destination bucket
-   *
-   * @param pythonLayers - PIP Dependencies
    */
-  private createThumbnailGeneratorLambda = (pythonLayers: LayerVersion): void => {
+  private createThumbnailGeneratorLambda = (): void => {
     const s3EventSource = new S3EventSource(this.inputBucket, {
       events: [EventType.OBJECT_CREATED],
     });
 
-    const imageProcessor = new lambda.Function(this, 'ImageProcessor', {
+    const pillowLayer = new PythonLayerVersion(this, 'PillowLayer', {
+      entry: 'src/layers/PillowLayer',
+      compatibleRuntimes: [Runtime.PYTHON_3_8],
+    });
+
+    const imageProcessor = new PythonFunction(this, 'ImageProcessor', {
       functionName: 'ImageProcessor',
-      code: lambda.Code.fromAsset('src/lambda/CreateThumbnail'),
-      handler: 'createThumbnail.lambda_handler',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      entry: 'src/lambda/CreateThumbnail',
+      handler: 'lambda_handler',
+      index: 'createThumbnail.py',
+      layers: [pillowLayer],
+      runtime: Runtime.PYTHON_3_8,
       memorySize: 512,
       timeout: Duration.minutes(1),
       environment: {
         DestinationBucket: this.destinationBucket.bucketName,
       },
+      events: [s3EventSource],
     });
-    imageProcessor.addLayers(pythonLayers);
-    imageProcessor.addEventSource(s3EventSource);
 
     imageProcessor.addToRolePolicy(
       new PolicyStatement({
